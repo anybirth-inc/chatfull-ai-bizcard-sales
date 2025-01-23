@@ -18,27 +18,36 @@ interface CompanyInfo {
   services: string[];
 }
 
-interface State {
+export type MeetingInfo = {
+  event: string;
+  place: string;
+};
+
+type State = {
   myCompanyInfo: CompanyInfo | null;
   partnerCompanyInfo: CompanyInfo | null;
+  meetingInfo: MeetingInfo | null;
   isDoubleSided: boolean;
   currentSide: 'front' | 'back';
   setMyCompanyInfo: (info: CompanyInfo) => void;
   setPartnerCompanyInfo: (info: CompanyInfo) => void;
+  setMeetingInfo: (info: MeetingInfo) => void;
   setIsDoubleSided: (isDouble: boolean) => void;
   setCurrentSide: (side: 'front' | 'back') => void;
   resetCardState: () => void;
-}
+};
 
 export const useStore = create<State>()(
   devtools(
     (set) => ({
       myCompanyInfo: null,
       partnerCompanyInfo: null,
+      meetingInfo: null,
       isDoubleSided: false,
       currentSide: 'front',
       setMyCompanyInfo: (info) => set({ myCompanyInfo: info }),
       setPartnerCompanyInfo: (info) => set({ partnerCompanyInfo: info }),
+      setMeetingInfo: (info) => set({ meetingInfo: info }),
       setIsDoubleSided: (isDouble) => set({ isDoubleSided: isDouble }),
       setCurrentSide: (side) => set({ currentSide: side }),
       resetCardState: () => set({ isDoubleSided: false, currentSide: 'front' }),

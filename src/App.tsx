@@ -7,6 +7,7 @@ import { CapturePartnerCard } from './components/CapturePartnerCard';
 import { EditPartnerInfo } from './components/EditPartnerInfo';
 import { ComposeEmail } from './components/ComposeEmail';
 import { ConfirmEmail } from './components/ConfirmEmail';
+import { InputMeetingInfo } from './components/InputMeetingInfo';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<CaptureCard />} />
           <Route path="edit-my-info" element={<EditMyInfo />} />
+          <Route path="input-meeting" element={<InputMeetingInfo />} />
           <Route path="capture-partner" element={<CapturePartnerCard />} />
           <Route path="edit-partner-info" element={<EditPartnerInfo />} />
           <Route path="compose-email" element={<ComposeEmail />} />

@@ -62,7 +62,7 @@ export function EditMyInfo() {
       setCurrentSide('back');
       navigate('/');
     } else {
-      navigate('/capture-partner');
+      navigate('/input-meeting');
     }
   };
 

@@ -55,9 +55,9 @@ export function EditPartnerInfo() {
     e.preventDefault();
     setPartnerCompanyInfo({
       ...formData,
-      companyNameKana: '',
-      firstNameKana: '',
-      lastNameKana: '',
+      companyNameKana: partnerCompanyInfo?.companyNameKana || '',
+      firstNameKana: partnerCompanyInfo?.firstNameKana || '',
+      lastNameKana: partnerCompanyInfo?.lastNameKana || '',
     });
     
     if (isDoubleSided && currentSide === 'front') {

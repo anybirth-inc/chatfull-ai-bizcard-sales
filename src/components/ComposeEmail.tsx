@@ -10,14 +10,15 @@ export function ComposeEmail() {
   const [emailBody, setEmailBody] = useState('');
   const [isGenerating, setIsGenerating] = useState(true);
   
-  const { myCompanyInfo, partnerCompanyInfo } = useStore((state) => ({
+  const { myCompanyInfo, partnerCompanyInfo, meetingInfo } = useStore((state) => ({
     myCompanyInfo: state.myCompanyInfo,
     partnerCompanyInfo: state.partnerCompanyInfo,
+    meetingInfo: state.meetingInfo,
   }));
 
   useEffect(() => {
-    if (myCompanyInfo && partnerCompanyInfo) {
-      generateEmail(partnerCompanyInfo, myCompanyInfo)
+    if (myCompanyInfo && partnerCompanyInfo && meetingInfo) {
+      generateEmail(partnerCompanyInfo, myCompanyInfo, meetingInfo)
         .then((generatedEmail) => {
           setEmailBody(generatedEmail);
           setSubject(`${partnerCompanyInfo.companyName}様 ご面談のお願い`);
@@ -25,7 +26,7 @@ export function ComposeEmail() {
         .catch(console.error)
         .finally(() => setIsGenerating(false));
     }
-  }, [myCompanyInfo, partnerCompanyInfo]);
+  }, [myCompanyInfo, partnerCompanyInfo, meetingInfo]);
 
   const handleSend = () => {
     const mailtoLink = `mailto:${partnerCompanyInfo?.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;

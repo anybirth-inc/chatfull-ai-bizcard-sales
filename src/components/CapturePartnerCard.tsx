@@ -4,6 +4,7 @@ import Webcam from 'react-webcam';
 import { Camera, RotateCw, AlertCircle, Info, Loader2 } from 'lucide-react';
 import { extractBusinessCardInfo } from '../lib/gemini';
 import { useStore } from '../store/useStore';
+import { convertToKana } from '../lib/kana';
 
 export function CapturePartnerCard() {
   const [isCapturing, setIsCapturing] = useState(false);
@@ -26,6 +27,7 @@ export function CapturePartnerCard() {
   React.useEffect(() => {
     if (currentSide === 'front') {
       resetCardState();
+      setIsDoubleSided(false); // 初期状態では片面に設定
     }
   }, []);
 
@@ -40,9 +42,59 @@ export function CapturePartnerCard() {
       setError(null);
       setIsProcessing(true);
       const info = await extractBusinessCardInfo(imageSrc.split(',')[1], currentSide === 'back');
+      console.log('Extracted info:', info); // デバッグ用
 
-      if (currentSide === 'back') {
-        // 裏面の場合は、既存の情報と統合
+      // 表面の場合
+      if (currentSide === 'front') {
+        // 名前の読みがある場合はそれを使用し、なければ漢字から変換
+        let firstNameKana = '';
+        let lastNameKana = '';
+        let companyKana = '';
+
+        if (info.firstNameReading && info.lastNameReading) {
+          const result = await convertToKana(info.firstNameReading, info.lastNameReading);
+          if (typeof result !== 'string' && result.firstName && result.lastName) {
+            firstNameKana = result.firstName;
+            lastNameKana = result.lastName;
+          }
+        } else if (info.firstName && info.lastName) {
+          const result = await convertToKana(info.firstName, info.lastName);
+          if (typeof result !== 'string' && result.firstName && result.lastName) {
+            firstNameKana = result.firstName;
+            lastNameKana = result.lastName;
+          }
+        }
+
+        if (info.companyName) {
+          const companyNameResult = await convertToKana(info.companyName);
+          if (typeof companyNameResult === 'string') {
+            companyKana = companyNameResult;
+          }
+        }
+
+        // 表面の情報を設定
+        const newInfo = {
+          companyName: info.companyName || '',
+          companyNameKana: companyKana,
+          firstName: info.firstName || '',
+          lastName: info.lastName || '',
+          firstNameKana,
+          lastNameKana,
+          personalPhone: info.personalPhone || '',
+          companyPhone: info.companyPhone || '',
+          faxNumber: info.faxNumber || '',
+          email: info.email || '',
+          address: info.address || '',
+          position: info.position || '',
+          website: info.website || '',
+          services: info.services || [],
+        };
+
+        console.log('Setting new info:', newInfo); // デバッグ用
+        setPartnerCompanyInfo(newInfo);
+      } 
+      // 裏面の場合
+      else {
         if (partnerCompanyInfo) {
           const updatedInfo = {
             ...partnerCompanyInfo,
@@ -55,41 +107,16 @@ export function CapturePartnerCard() {
             website: info.website || partnerCompanyInfo.website,
             // 事業内容は追加（空の配列の場合は既存の配列を維持）
             services: info.services?.length > 0
-              ? [...partnerCompanyInfo.services, ...info.services.filter(service => !partnerCompanyInfo.services.includes(service))]
+              ? [...partnerCompanyInfo.services, ...info.services.filter((service: string) => !partnerCompanyInfo.services.includes(service))]
               : partnerCompanyInfo.services,
           };
+          console.log('Setting updated info:', updatedInfo); // デバッグ用
           setPartnerCompanyInfo(updatedInfo);
-          navigate('/edit-partner-info');
-          return;
         }
       }
 
-      // 表面の情報を設定
-      const newInfo = {
-        companyName: info.companyName || '',
-        companyNameKana: '',
-        firstName: info.firstName || '',
-        lastName: info.lastName || '',
-        firstNameKana: '',
-        lastNameKana: '',
-        personalPhone: info.personalPhone || '',
-        companyPhone: info.companyPhone || '',
-        faxNumber: info.faxNumber || '',
-        email: info.email || '',
-        address: info.address || '',
-        position: info.position || '',
-        website: info.website || '',
-        services: info.services || [],
-      };
-
-      setPartnerCompanyInfo(newInfo);
-
-      if (isDoubleSided && currentSide === 'front') {
-        setCurrentSide('back');
-        navigate('/edit-partner-info');
-      } else {
-        navigate('/edit-partner-info');
-      }
+      // 編集画面へ遷移
+      navigate('/edit-partner-info');
     } catch (error) {
       console.error('Capture error:', error);
       setError(error instanceof Error ? error.message : '名刺の処理中にエラーが発生しました。');

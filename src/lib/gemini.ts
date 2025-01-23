@@ -126,7 +126,7 @@ export async function extractBusinessCardInfo(imageData: string, isBackSide = fa
   }
 }
 
-export async function generateEmail(partnerInfo: any, myInfo: any) {
+export async function generateEmail(partnerInfo: any, myInfo: any, meetingInfo: any) {
   const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
   
   const prompt = `以下の情報を元に、ビジネスメールを作成してください：
@@ -135,28 +135,80 @@ export async function generateEmail(partnerInfo: any, myInfo: any) {
 - 会社名：${partnerInfo.companyName}
 - 担当者名：${partnerInfo.lastName} ${partnerInfo.firstName}
 - 役職：${partnerInfo.position || ''}
-
+- 事業内容：${partnerInfo.services.join('、')}
 自社情報：
 - 会社名：${myInfo.companyName}
+- 住所：${myInfo.address}
 - 担当者名：${myInfo.lastName} ${myInfo.firstName}
 - 役職：${myInfo.position || ''}
 - 事業内容：${myInfo.services.join('、')}
+- 電話番号：${myInfo.companyPhone}
+- ファックス：${myInfo.faxNumber}
+- メールアドレス：${myInfo.email}
+- ウェブサイト：${myInfo.website}
+
+イベント情報：
+- イベント名：${meetingInfo.event}
+- イベント場所：${meetingInfo.place}
 
 メールの要件：
-1. 挨拶とお会いしたことのお礼
+
+1. イベントでお会いしたことのお礼
 2. 自社の紹介（事業内容を含む）
-3. 打ち合わせのお願い
-4. 締めの挨拶
+3. 相手企業の事業において、自社のサービスがどのように役立つかを説明
+4. 例としてどのように相手企業のサービスに役立つかの説明と、その詳細を話すために打ち合わせのお願い（相手の事業内容を読み取れない場合は、自社の事業内容を読み取れるように記載する）
+5. 締めの挨拶
 
 注意点：
 - 日本のビジネスメールとして適切な敬語と形式を使用
 - 簡潔かつ丁寧な文章
 - 具体的な日時は指定せず、先方の都合の良い日時で調整させていただく形
-- 署名は含めない
+- 実際に送る本文なので、()などでユーザーに入力を促すような項目は入れず、完成形を生成して。足りない情報は無理に入れようとしないで
+- 自社の紹介時に住所の入力は不要
+- 存在する情報のみでメールを作成し、足りない情報については記載せず、入力を促しもしない
+  例：　（貴社の事業内容に関する情報は本文からは読み取れませんので、具体的な記述は割愛します。）などの入力はしないで
+      （具体的な事業内容は不明ですが）などの入力はしないで
+      詳細を承知しておりませんが、などの入力はしないで
 
 フォーマット：
 - 改行を適切に入れる
-- 結果は本文のみを返す`;
+- 結果は本文のみを返す
+- 署名は事例のフォーマットに沿って、存在する情報だけ入力して
+
+事例：
+株式会社トータス・ウィンズ
+亀甲 来良様
+
+お世話になります。
+${myInfo.companyName}の${myInfo.position}である${myInfo.lastName} ${myInfo.firstName}です。
+先日は、札幌で開催されたEXPOにてお会いさせていただき、誠にありがとうございました。
+
+貴社はWebサイト制作、システム開発を事業とされていらっしゃるとのこと、Webサイトやシステムを通して、様々な企業の業務効率化に貢献されていることに感銘を受けました。
+弊社AnyBirth株式会社も、AI技術を用いて企業の業務効率化や営業自動化を支援しており、貴社と共通の目標を持っていると感じております。
+
+例えば、貴社においては、Webサイト制作におけるデザイン案の考案やコーディング、クライアントとのコミュニケーション、プロジェクト管理など、多くの業務が発生しているかと存じます。
+弊社のAIは、これらの業務を効率化し、貴社の従業員様がより創造的な業務に集中できる環境を提供できると考えております。
+
+また、貴社が開発するシステムに弊社のAI技術を組み込むことで、システムの機能を拡張し、更なる付加価値を提供することも可能になるのではないでしょうか。
+
+つきましては、貴社の事業と弊社のAI技術を組み合わせることで、どのようなシナジーを生み出すことができるのか、より具体的なお話をお伺いできれば幸いです。
+お忙しいところ誠に恐縮ですが、ご都合の良い日時をいただけますでしょうか。
+
+今後ともよろしくお願い申し上げます。
+
+────────────────────────
+社名
+事業部or役職
+担当者名
+住所
+TEL：
+FAX：
+Email：
+URL:
+────────────────────────
+
+
+`;
 
   try {
     const generateContent = async () => {
